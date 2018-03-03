@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/kr/pretty"
@@ -54,6 +55,25 @@ func downloadFile(url string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func (fx *ImageFixture) cleanTempFiles(c *ttlcache.Cache) {
+func cleanTempFiles(c *ttlcache.Cache) error {
+	pretty.Println("prepare to clean temp files")
+	value, exists := c.Get(registry)
+	if !exists {
+		return fmt.Errorf("temp files registry not found in cache")
+	}
 
+	tempFiles, ok := value.([]string)
+	if !ok {
+		return fmt.Errorf("temp files registry contains %T not []string", value)
+	}
+
+	for _, e := range tempFiles {
+		pretty.Println("remove temp file:", e)
+		err := os.Remove(e)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("could not remove temp file %s", e))
+		}
+	}
+
+	return nil
 }

@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"image/jpeg"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"time"
 
-	"io/ioutil"
+	"syscall"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/kr/pretty"
@@ -104,11 +106,27 @@ func main() {
 
 	cache := ttlcache.NewCache()
 	cache.SetTTL(time.Second * time.Duration(ttl))
+	cache.SetWithTTL(registry, make([]string, 0), ttlcache.ItemNotExpire)
+
+	// chan to capture SIGTERM
+	signals := make(chan os.Signal, 1)
+
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	go func(signals <-chan os.Signal) {
+		s := <-signals
+		pretty.Println("CAUGHT SIGNAL:", s)
+		err := cleanTempFiles(cache)
+		if err != nil {
+			log.Println("remove temp files: ", err.Error())
+		}
+
+		os.Exit(1)
+	}(signals)
 
 	fmt.Println("Listening on http://localhost:" + strconv.Itoa(port))
 	//http.HandleFunc("/", formHandler(port))
 	http.HandleFunc("/upload", withCache(cache, ttl))
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), nil))
+	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
 func readFlags() (port, ttl int) {

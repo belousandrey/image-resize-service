@@ -5,6 +5,9 @@ import (
 	"github.com/kr/pretty"
 )
 
+// registry for all temp files
+const registry = "__TEMPFILESARRAY__"
+
 // MetaData contains local file paths to original image and to all resized images
 // original is a string with path to original image
 // resized is a map with all resized images:
@@ -28,6 +31,8 @@ func (fx *ImageFixture) SetToCache(c *ttlcache.Cache) {
 	md := NewMetaData(fx.File.Path)
 	pretty.Printf("put to cache | key = %s | value = %s | metadata = %+v\n", fx.File.Etag, fx.File.Path, md)
 	c.Set(fx.File.Etag, md)
+
+	fx.AddFileToRegistry(c, fx.File.Path)
 }
 
 func (fx *ImageFixture) getImageMetaDataFromCache(c *ttlcache.Cache) (*MetaData, bool) {
@@ -69,6 +74,8 @@ func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string) {
 		md.resized[fx.Params.Width] = make(map[uint64]string)
 	}
 	md.resized[fx.Params.Width][fx.Params.Height] = resized
+
+	fx.AddFileToRegistry(c, resized)
 }
 
 // RemoveFromCache deletes image metadata struct by image Etag
@@ -98,4 +105,12 @@ func (fx *ImageFixture) FindInCache(c *ttlcache.Cache) bool {
 
 	pretty.Println("find in cache by etag+width+height")
 	return true
+}
+
+// AddFileToRegistry adds temp file to registry
+func (fx *ImageFixture) AddFileToRegistry(c *ttlcache.Cache, file string) {
+	value, _ := c.Get(registry)
+	tempFiles, _ := value.([]string)
+	tempFiles = append(tempFiles, file)
+	c.Set(registry, tempFiles)
 }
