@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/ReneKroon/ttlcache"
-	"github.com/kr/pretty"
 )
 
 // registry for all temp files
@@ -29,7 +28,7 @@ func NewMetaData(ofp string) *MetaData {
 // SetToCache puts into cache image metadata struct by image Etag
 func (fx *ImageFixture) SetToCache(c *ttlcache.Cache) {
 	md := NewMetaData(fx.File.Path)
-	pretty.Printf("put to cache | key = %s | value = %s | metadata = %+v\n", fx.File.Etag, fx.File.Path, md)
+	//pretty.Printf("put to cache | key = %s | value = %s | metadata = %+v\n", fx.File.Etag, fx.File.Path, md)
 	c.Set(fx.File.Etag, md)
 
 	fx.AddFileToRegistry(c, fx.File.Path)
@@ -37,7 +36,7 @@ func (fx *ImageFixture) SetToCache(c *ttlcache.Cache) {
 
 func (fx *ImageFixture) getImageMetaDataFromCache(c *ttlcache.Cache) (*MetaData, bool) {
 	value, exists := c.Get(fx.File.Etag)
-	pretty.Printf("get from cache | key = %s | value = %+v | exists = %t\n", fx.File.Etag, value, exists)
+	//pretty.Printf("get from cache | key = %s | value = %+v | exists = %t\n", fx.File.Etag, value, exists)
 	if !exists {
 		return nil, false
 	}
@@ -80,7 +79,7 @@ func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string) {
 
 // RemoveFromCache deletes image metadata struct by image Etag
 func (fx *ImageFixture) RemoveFromCache(c *ttlcache.Cache) {
-	pretty.Printf("remove from cache | key = %s\n", fx.File.Etag)
+	//pretty.Printf("remove from cache | key = %s\n", fx.File.Etag)
 	c.Remove(fx.File.Etag)
 }
 
@@ -91,19 +90,16 @@ func (fx *ImageFixture) FindInCache(c *ttlcache.Cache) bool {
 		return false
 	}
 
-	pretty.Println("find in cache by etag")
 	_, ok := md.resized[fx.Params.Width]
 	if !ok {
 		return false
 	}
 
-	pretty.Println("find in cache by etag+width")
 	_, ok = md.resized[fx.Params.Width][fx.Params.Height]
 	if !ok {
 		return false
 	}
 
-	pretty.Println("find in cache by etag+width+height")
 	return true
 }
 

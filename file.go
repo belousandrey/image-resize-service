@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/ReneKroon/ttlcache"
-	"github.com/kr/pretty"
 	"github.com/pkg/errors"
 )
 
@@ -29,12 +28,10 @@ func downloadFileToTemp(w http.ResponseWriter, URL string) (string, error) {
 	}
 	content.Close()
 
-	pretty.Println("temporary file path:", tempFile.Name())
 	return tempFile.Name(), nil
 }
 
 func downloadFile(url string) (io.ReadCloser, error) {
-	pretty.Println("download file from:", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "create request object")
@@ -56,7 +53,6 @@ func downloadFile(url string) (io.ReadCloser, error) {
 }
 
 func cleanTempFiles(c *ttlcache.Cache) error {
-	pretty.Println("prepare to clean temp files")
 	value, exists := c.Get(registry)
 	if !exists {
 		return fmt.Errorf("temp files registry not found in cache")
@@ -68,7 +64,6 @@ func cleanTempFiles(c *ttlcache.Cache) error {
 	}
 
 	for _, e := range tempFiles {
-		pretty.Println("remove temp file:", e)
 		err := os.Remove(e)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("could not remove temp file %s", e))

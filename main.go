@@ -15,7 +15,6 @@ import (
 	"syscall"
 
 	"github.com/ReneKroon/ttlcache"
-	"github.com/kr/pretty"
 	"github.com/nfnt/resize"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -31,8 +30,6 @@ func withCache(c *ttlcache.Cache, ttl int) func(http.ResponseWriter, *http.Reque
 			fx.respondWithError(w, http.StatusMethodNotAllowed, errors.New("only GET method allowed"))
 			return
 		}
-
-		pretty.Println("If-Modified-Since:", r.Header.Get("If-Modified-Since"), "| If-None-Match:", r.Header.Get("If-None-Match"))
 
 		err := fx.getParamsFromRequest(w, r)
 		if err != nil {
@@ -113,8 +110,7 @@ func main() {
 
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 	go func(signals <-chan os.Signal) {
-		s := <-signals
-		pretty.Println("CAUGHT SIGNAL:", s)
+		<-signals
 		err := cleanTempFiles(cache)
 		if err != nil {
 			log.Println("remove temp files: ", err.Error())

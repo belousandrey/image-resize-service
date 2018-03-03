@@ -3,13 +3,10 @@ package main
 import (
 	"net/http"
 	"net/url"
-
 	"strconv"
-
 	"strings"
 
 	"github.com/ReneKroon/ttlcache"
-	"github.com/kr/pretty"
 	"github.com/pkg/errors"
 )
 
@@ -30,7 +27,6 @@ func (fx *ImageFixture) getParamsFromRequest(w http.ResponseWriter, r *http.Requ
 
 func (fx *ImageFixture) getUploadDataFromRequest(r *http.Request) error {
 	r.ParseForm()
-	pretty.Println(r.Form)
 
 	url := strings.ToLower(r.Form.Get("url"))
 	width, err := strconv.ParseUint(r.Form.Get("width"), 10, 32)
