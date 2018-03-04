@@ -3,19 +3,16 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"image/jpeg"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
-	"syscall"
-
 	"github.com/ReneKroon/ttlcache"
-	"github.com/nfnt/resize"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
@@ -24,6 +21,7 @@ var allowedContentTypes = map[string]bool{"image/jpeg": true}
 
 // withStorages http handler with provided storages
 func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWriter, *http.Request) {
+	imager := NewImager()
 	return func(w http.ResponseWriter, r *http.Request) {
 		fx := NewImageFixture()
 
@@ -48,9 +46,21 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 			fx.File.Path, err = downloadFileToTemp(w, fx.Params.URL)
 			if err != nil {
 				fx.respondWithError(w, http.StatusInternalServerError, err)
+				return
 			}
 
 			fx.SetToCache(c, reg)
+		} else {
+			resized, existsResized := fx.FindInCache(c)
+			if existsResized {
+				b, err := ioutil.ReadFile(resized)
+				if err == nil {
+					buffer := new(bytes.Buffer)
+					buffer.Write(b)
+					fx.respondWithImage(w, buffer, fx.Params.URL, ttl)
+					return
+				}
+			}
 		}
 
 		fx.File.Handler, err = os.Open(fx.File.Path)
@@ -66,19 +76,21 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 			return
 		}
 
-		img, err := jpeg.Decode(fx.File.Handler)
+		err = imager.Decode(fx.File.Handler)
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return
 		}
 
-		resized := resize.Resize(uint(fx.Params.Width), uint(fx.Params.Height), img, resize.Lanczos3)
-		resizedFile, err := ioutil.TempFile("", "")
-		jpeg.Encode(resizedFile, resized, &jpeg.Options{jpeg.DefaultQuality})
-		fx.UpdateValueInCache(c, resizedFile.Name(), reg)
+		imager.Resize(uint(fx.Params.Width), uint(fx.Params.Height))
+		resized, err := imager.StoreToTempFile()
+		if err != nil {
+			fx.respondWithError(w, http.StatusInternalServerError, err)
+		}
+		fx.UpdateValueInCache(c, resized, reg)
 
 		buffer := new(bytes.Buffer)
-		err = jpeg.Encode(buffer, resized, nil)
+		err = imager.Encode(buffer)
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return

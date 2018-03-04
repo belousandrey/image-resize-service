@@ -56,7 +56,7 @@ func (fx *ImageFixture) validateUploadData() error {
 func (fx *ImageFixture) upToDate(r *http.Request, c *ttlcache.Cache) bool {
 	ifNoneMatch := r.Header.Get("If-None-Match")
 	if len(ifNoneMatch) > 0 {
-		exists := fx.FindInCache(c)
+		_, exists := fx.FindInCache(c)
 		if exists {
 			return true
 		}

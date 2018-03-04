@@ -81,21 +81,21 @@ func (fx *ImageFixture) RemoveFromCache(c *ttlcache.Cache) {
 }
 
 // FindInCache searches in cache resized image by width and height
-func (fx *ImageFixture) FindInCache(c *ttlcache.Cache) bool {
+func (fx *ImageFixture) FindInCache(c *ttlcache.Cache) (string, bool) {
 	md, exists := fx.getImageMetaDataFromCache(c)
 	if !exists {
-		return false
+		return "", false
 	}
 
 	_, ok := md.resized[fx.Params.Width]
 	if !ok {
-		return false
+		return "", false
 	}
 
-	_, ok = md.resized[fx.Params.Width][fx.Params.Height]
+	value, ok := md.resized[fx.Params.Width][fx.Params.Height]
 	if !ok {
-		return false
+		return "", false
 	}
 
-	return true
+	return value, true
 }

@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"image"
 	"net/http"
 	"os"
 )
@@ -21,7 +20,6 @@ type ImageFixture struct {
 		Etag        string
 		Handler     *os.File
 	}
-	Image image.Image
 }
 
 func NewImageFixture() *ImageFixture {
