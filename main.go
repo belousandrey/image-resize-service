@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -100,16 +101,17 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 	}
 }
 
-//func formHandler(p int) func(http.ResponseWriter, *http.Request) {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		t, err := template.ParseFiles("tmpl/upload.html")
-//		if err != nil {
-//			respondWithError(w, http.StatusInternalServerError, err)
-//		}
-//
-//		t.Execute(w, p)
-//	}
-//}
+func formHandler(p int) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		t, err := template.ParseFiles("tmpl/upload.html")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		t.Execute(w, p)
+	}
+}
 
 func main() {
 	port, ttl := readFlags()
@@ -136,7 +138,7 @@ func main() {
 	}(signals, registry)
 
 	fmt.Println("Listening on http://localhost:" + strconv.Itoa(port))
-	//http.HandleFunc("/", formHandler(port))
+	http.HandleFunc("/", formHandler(port))
 	http.HandleFunc("/upload", withStorages(cache, ttl, registry))
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
