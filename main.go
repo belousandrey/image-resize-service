@@ -20,9 +20,8 @@ import (
 
 var allowedContentTypes = map[string]bool{"image/jpeg": true}
 
-// withStorages http handler with provided storages
-func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWriter, *http.Request) {
-	imager, downloader := NewImager(), NewDownloader()
+// resizeHandler covers all routine with file download, image convertion and resize, client responses
+func resizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i *Imager, d *Downloader) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fx := NewImageFixture()
 
@@ -44,7 +43,7 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 
 		exists := fx.GetFromCache(c)
 		if !exists {
-			fx.File.Path, err = downloader.StoreFileToTemp(fx.Params.URL)
+			fx.File.Path, err = d.StoreFileToTemp(fx.Params.URL)
 			if err != nil {
 				fx.respondWithError(w, http.StatusInternalServerError, err)
 				return
@@ -77,21 +76,21 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 			return
 		}
 
-		err = imager.Decode(fx.File.Handler)
+		err = i.Decode(fx.File.Handler)
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return
 		}
 
-		imager.Resize(uint(fx.Params.Width), uint(fx.Params.Height))
-		resized, err := imager.StoreToTempFile()
+		i.Resize(uint(fx.Params.Width), uint(fx.Params.Height))
+		resized, err := i.StoreToTempFile()
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 		}
 		fx.UpdateValueInCache(c, resized, reg)
 
 		buffer := new(bytes.Buffer)
-		err = imager.Encode(buffer)
+		err = i.Encode(buffer)
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return
@@ -101,6 +100,7 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 	}
 }
 
+// formHandler loads page with simple form for image resize
 func formHandler(p int) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("tmpl/upload.html")
@@ -139,7 +139,7 @@ func main() {
 
 	fmt.Println("Listening on http://localhost:" + strconv.Itoa(port))
 	http.HandleFunc("/", formHandler(port))
-	http.HandleFunc("/upload", withStorages(cache, ttl, registry))
+	http.HandleFunc("/upload", resizeHandler(cache, ttl, registry, NewImager(), NewDownloader()))
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
