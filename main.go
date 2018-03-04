@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -63,7 +62,7 @@ func ResizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i Imager, d Downloa
 			}
 		}
 
-		fx.File.Handler, err = os.Open(fx.File.Path)
+		fx.File.Handler, err = i.Open(fx.File.Path)
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return
@@ -83,14 +82,13 @@ func ResizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i Imager, d Downloa
 		}
 
 		i.Resize(uint(fx.Params.Width), uint(fx.Params.Height))
-		resized, err := i.StoreToTempFile()
+		resized, err := i.StoreResizedToTempFile()
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 		}
 		fx.UpdateValueInCache(c, resized, reg)
 
-		buffer := new(bytes.Buffer)
-		err = i.Encode(buffer)
+		buffer, err := i.Encode()
 		if err != nil {
 			fx.respondWithError(w, http.StatusInternalServerError, err)
 			return
@@ -131,7 +129,7 @@ func main() {
 		<-signals
 		err := reg.Cleanup()
 		if err != nil {
-			log.Println("remove temp files: ", err.Error())
+			fmt.Println("remove temp files: ", err.Error())
 		}
 
 		os.Exit(1)

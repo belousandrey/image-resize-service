@@ -25,7 +25,6 @@ func NewMetaData(ofp string) *MetaData {
 // SetToCache puts into cache image metadata struct by image Etag
 func (fx *ImageFixture) SetToCache(c *ttlcache.Cache, reg Registry) {
 	md := NewMetaData(fx.File.Path)
-	//pretty.Printf("put to cache | key = %s | value = %s | metadata = %+v\n", fx.File.Etag, fx.File.Path, md)
 	c.Set(fx.File.Etag, md)
 
 	reg.AddFileToRegistry(fx.File.Path)
@@ -33,7 +32,6 @@ func (fx *ImageFixture) SetToCache(c *ttlcache.Cache, reg Registry) {
 
 func (fx *ImageFixture) getImageMetaDataFromCache(c *ttlcache.Cache) (*MetaData, bool) {
 	value, exists := c.Get(fx.File.Etag)
-	//pretty.Printf("get from cache | key = %s | value = %+v | exists = %t\n", fx.File.Etag, value, exists)
 	if !exists {
 		return nil, false
 	}
@@ -76,7 +74,6 @@ func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string, re
 
 // RemoveFromCache deletes image metadata struct by image Etag
 func (fx *ImageFixture) RemoveFromCache(c *ttlcache.Cache) {
-	//pretty.Printf("remove from cache | key = %s\n", fx.File.Etag)
 	c.Remove(fx.File.Etag)
 }
 

@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// ImageFixture is a helpful tool for resize handler operations
 type ImageFixture struct {
 	Params struct {
 		URL    string
@@ -22,6 +23,7 @@ type ImageFixture struct {
 	}
 }
 
+// NewImageFixture returns new ImageFixture object
 func NewImageFixture() *ImageFixture {
 	return &ImageFixture{}
 }
@@ -45,7 +47,7 @@ func (fx *ImageFixture) checkFileContentType(allowed map[string]bool) error {
 
 	fx.File.Handler.Seek(0, 0)
 
-	// Use the net/http package's handy DectectContentType function. Always returns a valid
+	// Use the net/http package's handy DetectContentType function. Always returns a valid
 	// content-type by returning "application/octet-stream" if no others seemed to match.
 	fx.File.ContentType = http.DetectContentType(buffer)
 

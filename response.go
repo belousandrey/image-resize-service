@@ -9,7 +9,6 @@ import (
 )
 
 func (fx *ImageFixture) respondWithError(w http.ResponseWriter, status int, err error) {
-	fmt.Println("[ERROR]", err.Error())
 	w.WriteHeader(status)
 }
 
