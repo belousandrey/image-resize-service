@@ -9,16 +9,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Downloader is an interface that works with
+type Downloader interface {
+	DownloadFile(URL string) (io.ReadCloser, error)
+	StoreFileToTemp(URL string) (string, error)
+}
+
 // Downloader is a type to process downloads
-type Downloader struct{}
+type Downloads struct{}
 
 // NewDownloader returns new object Downloader
-func NewDownloader() *Downloader {
-	return &Downloader{}
+func NewDownloader() Downloader {
+	return &Downloads{}
 }
 
 // StoreFileToTemp saves file content to temporary file and returns path
-func (d *Downloader) StoreFileToTemp(URL string) (string, error) {
+func (d *Downloads) StoreFileToTemp(URL string) (string, error) {
 	content, err := d.DownloadFile(URL)
 	if err != nil {
 		return "", err
@@ -39,7 +45,7 @@ func (d *Downloader) StoreFileToTemp(URL string) (string, error) {
 }
 
 // DownloadFile downloads file by URL and returns content
-func (d *Downloader) DownloadFile(URL string) (io.ReadCloser, error) {
+func (d *Downloads) DownloadFile(URL string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "create request object")

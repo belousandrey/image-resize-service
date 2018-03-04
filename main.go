@@ -20,8 +20,8 @@ import (
 
 var allowedContentTypes = map[string]bool{"image/jpeg": true}
 
-// resizeHandler covers all routine with file download, image convertion and resize, client responses
-func resizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i *Imager, d *Downloader) func(http.ResponseWriter, *http.Request) {
+// ResizeHandler covers all routine with file download, image convertion and resize, client responses
+func ResizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i Imager, d Downloader) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fx := NewImageFixture()
 
@@ -100,8 +100,8 @@ func resizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i *Imager, d *Downl
 	}
 }
 
-// formHandler loads page with simple form for image resize
-func formHandler(p int) func(http.ResponseWriter, *http.Request) {
+// FormHandler loads page with simple form for image resize
+func FormHandler(p int) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("tmpl/upload.html")
 		if err != nil {
@@ -138,8 +138,8 @@ func main() {
 	}(signals, registry)
 
 	fmt.Println("Listening on http://localhost:" + strconv.Itoa(port))
-	http.HandleFunc("/", formHandler(port))
-	http.HandleFunc("/upload", resizeHandler(cache, ttl, registry, NewImager(), NewDownloader()))
+	http.HandleFunc("/", FormHandler(port))
+	http.HandleFunc("/upload", ResizeHandler(cache, ttl, registry, NewImager(), NewDownloader()))
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
