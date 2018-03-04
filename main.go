@@ -21,7 +21,7 @@ var allowedContentTypes = map[string]bool{"image/jpeg": true}
 
 // withStorages http handler with provided storages
 func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWriter, *http.Request) {
-	imager := NewImager()
+	imager, downloader := NewImager(), NewDownloader()
 	return func(w http.ResponseWriter, r *http.Request) {
 		fx := NewImageFixture()
 
@@ -43,7 +43,7 @@ func withStorages(c *ttlcache.Cache, ttl int, reg Registry) func(http.ResponseWr
 
 		exists := fx.GetFromCache(c)
 		if !exists {
-			fx.File.Path, err = downloadFileToTemp(w, fx.Params.URL)
+			fx.File.Path, err = downloader.StoreFileToTemp(fx.Params.URL)
 			if err != nil {
 				fx.respondWithError(w, http.StatusInternalServerError, err)
 				return

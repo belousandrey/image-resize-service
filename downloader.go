@@ -9,8 +9,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-func downloadFileToTemp(w http.ResponseWriter, URL string) (string, error) {
-	content, err := downloadFile(URL)
+// Downloader is a type to process downloads
+type Downloader struct{}
+
+// NewDownloader returns new object Downloader
+func NewDownloader() *Downloader {
+	return &Downloader{}
+}
+
+// StoreFileToTemp saves file content to temporary file and returns path
+func (d *Downloader) StoreFileToTemp(URL string) (string, error) {
+	content, err := d.DownloadFile(URL)
 	if err != nil {
 		return "", err
 	}
@@ -29,8 +38,9 @@ func downloadFileToTemp(w http.ResponseWriter, URL string) (string, error) {
 	return tempFile.Name(), nil
 }
 
-func downloadFile(url string) (io.ReadCloser, error) {
-	req, err := http.NewRequest("GET", url, nil)
+// DownloadFile downloads file by URL and returns content
+func (d *Downloader) DownloadFile(URL string) (io.ReadCloser, error) {
+	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "create request object")
 	}
