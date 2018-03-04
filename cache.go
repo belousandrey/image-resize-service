@@ -4,9 +4,6 @@ import (
 	"github.com/ReneKroon/ttlcache"
 )
 
-// registry for all temp files
-const registry = "__TEMPFILESARRAY__"
-
 // MetaData contains local file paths to original image and to all resized images
 // original is a string with path to original image
 // resized is a map with all resized images:
@@ -26,12 +23,12 @@ func NewMetaData(ofp string) *MetaData {
 }
 
 // SetToCache puts into cache image metadata struct by image Etag
-func (fx *ImageFixture) SetToCache(c *ttlcache.Cache) {
+func (fx *ImageFixture) SetToCache(c *ttlcache.Cache, reg Registry) {
 	md := NewMetaData(fx.File.Path)
 	//pretty.Printf("put to cache | key = %s | value = %s | metadata = %+v\n", fx.File.Etag, fx.File.Path, md)
 	c.Set(fx.File.Etag, md)
 
-	fx.AddFileToRegistry(c, fx.File.Path)
+	reg.AddFileToRegistry(fx.File.Path)
 }
 
 func (fx *ImageFixture) getImageMetaDataFromCache(c *ttlcache.Cache) (*MetaData, bool) {
@@ -61,7 +58,7 @@ func (fx *ImageFixture) GetFromCache(c *ttlcache.Cache) bool {
 
 // UpdateValueInCache updates image metadata struct by image Etag
 // i.e. if new resized image added
-func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string) {
+func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string, reg Registry) {
 	md, exists := fx.getImageMetaDataFromCache(c)
 	if !exists {
 		// wtf?
@@ -74,7 +71,7 @@ func (fx *ImageFixture) UpdateValueInCache(c *ttlcache.Cache, resized string) {
 	}
 	md.resized[fx.Params.Width][fx.Params.Height] = resized
 
-	fx.AddFileToRegistry(c, resized)
+	reg.AddFileToRegistry(resized)
 }
 
 // RemoveFromCache deletes image metadata struct by image Etag
@@ -101,12 +98,4 @@ func (fx *ImageFixture) FindInCache(c *ttlcache.Cache) bool {
 	}
 
 	return true
-}
-
-// AddFileToRegistry adds temp file to registry
-func (fx *ImageFixture) AddFileToRegistry(c *ttlcache.Cache, file string) {
-	value, _ := c.Get(registry)
-	tempFiles, _ := value.([]string)
-	tempFiles = append(tempFiles, file)
-	c.Set(registry, tempFiles)
 }

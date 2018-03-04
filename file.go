@@ -5,9 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 
-	"github.com/ReneKroon/ttlcache"
 	"github.com/pkg/errors"
 )
 
@@ -50,25 +48,4 @@ func downloadFile(url string) (io.ReadCloser, error) {
 	}
 
 	return resp.Body, nil
-}
-
-func cleanTempFiles(c *ttlcache.Cache) error {
-	value, exists := c.Get(registry)
-	if !exists {
-		return fmt.Errorf("temp files registry not found in cache")
-	}
-
-	tempFiles, ok := value.([]string)
-	if !ok {
-		return fmt.Errorf("temp files registry contains %T not []string", value)
-	}
-
-	for _, e := range tempFiles {
-		err := os.Remove(e)
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("could not remove temp file %s", e))
-		}
-	}
-
-	return nil
 }
