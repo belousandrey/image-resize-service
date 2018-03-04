@@ -2,11 +2,21 @@
 <head><title>Resize images from Internet</title></head>
 <body>
 <form method="get" action="http://localhost:{{.}}/upload">
-    <label for="url">Picture URL</label><input id="url" name="url" placeholder="http://example.com/image.jpg" /><br/>
-    <label for="width">Width</label><input id="width" name="width" placeholder="100" /><br/>
-    <label for="height">Height</label><input id="height" name="height" placeholder="100" /><br/>
-
-    <input type="submit" value="Resize" />
+    <table width="550">
+        <tr><th width="100"></th><th width="400"></th></tr>
+        <tr>
+            <td><label for="url">Picture&nbsp;URL</label></td>
+            <td><input id="url" name="url" placeholder="http://example.com/image.jpg" /></td>
+        </tr>
+        <tr>
+            <td><label for="width">Width</label></td>
+            <td><input id="width" name="width" placeholder="100" /></td>
+        </tr><tr>
+            <td><label for="height">Height</label></td>
+        <td><input id="height" name="height" placeholder="100" /></td>
+    </tr>
+    <tr><td align="left"><input type="submit" value="Resize" /></td></tr>
+    </table>
 </form>
 </body>
 </html>
