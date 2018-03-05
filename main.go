@@ -19,7 +19,7 @@ import (
 
 var allowedContentTypes = map[string]bool{"image/jpeg": true}
 
-// ResizeHandler covers all routine with file download, image convertion and resize, client responses
+// ResizeHandler covers all routine with file download, image conversion and resize, client responses
 func ResizeHandler(c *ttlcache.Cache, ttl int, reg Registry, i Imager, d Downloader) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fx := NewImageFixture()
