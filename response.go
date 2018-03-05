@@ -8,11 +8,12 @@ import (
 	"time"
 )
 
-func (fx *ImageFixture) respondWithError(w http.ResponseWriter, status int, err error) {
+func (fx *ImageFixture) respondWithError(w http.ResponseWriter, status int, err error) (int, error) {
 	w.WriteHeader(status)
+	return status, err
 }
 
-func (fx *ImageFixture) respondWithImage(w http.ResponseWriter, buffer *bytes.Buffer, URL string, ttl int) {
+func (fx *ImageFixture) respondWithImage(w http.ResponseWriter, buffer *bytes.Buffer, URL string, ttl int) (int, error) {
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
 
@@ -23,11 +24,14 @@ func (fx *ImageFixture) respondWithImage(w http.ResponseWriter, buffer *bytes.Bu
 
 	_, err := w.Write(buffer.Bytes())
 	if err != nil {
-		fx.respondWithError(w, http.StatusInternalServerError, err)
-		return
+		return fx.respondWithError(w, http.StatusInternalServerError, err)
 	}
+
+	return http.StatusOK, nil
 }
 
-func (fx *ImageFixture) respondWithRedirect(w http.ResponseWriter) {
+func (fx *ImageFixture) respondWithRedirect(w http.ResponseWriter) (int, error) {
 	w.WriteHeader(http.StatusNotModified)
+
+	return http.StatusNotModified, nil
 }
