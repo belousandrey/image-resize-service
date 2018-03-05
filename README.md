@@ -23,15 +23,15 @@
 - загруженные картинки и изображения с изменёнными размерами хранятся во временных файлах и удаляются при остановке приложения
 - реализована обработка заголовка `If-None-Match` для быстрого ответа клиенту с помощью статуса `304 Not Modified`
 
-Исходники приложение можно получить с помощью команды
+## Установка
 
     go get github.com/belousandrey/image-resize-service
 
-Скомпилировать можно командой
+## Компиляция
 
     make build
 
-Скомпилированное приложение запускается следующим образом
+## Запуск приложения
 
     ./service --port 8080 --ttl 3600
 
@@ -43,7 +43,14 @@
 
     http://localhost:8080/upload?url=https://example.com/image.jpg&width=100&height=100
 
-Тестовые картинки:
-* https://2ch.hk/pr/arch/2017-05-28/src/936216/14874999327210.jpg
-* https://golang.org/doc/gopher/appenginegophercolor.jpg
-* https://golang.org/doc/gopher/fiveyears.jpg
+## Тестирование
+
+    make test
+
+## Использованные сторонние библиотеки
+* [nfnt/resize](https://github.com/nfnt/resize)
+* [pkg/errors](https://github.com/pkg/errors)
+* [ReneKroon/ttlcache](https://github.com/ReneKroon/ttlcache)
+* [spf13/pflag](https://github.com/spf13/pflag)
+* [gomock](https://github.com/golang/mock/)
+* [stretchr/testify](https://github.com/stretchr/testify/)
