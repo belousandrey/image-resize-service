@@ -47,7 +47,7 @@ func (fh *resizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func ResizeHandler(w http.ResponseWriter, r *http.Request, c *ttlcache.Cache, ttl int, reg Registry, i Imager, d Downloader) (int, error) {
 	fx := NewImageFixture()
 
-	if r.Method != "GET" {
+	if r.Method != http.MethodGet {
 		return fx.respondWithError(w, http.StatusMethodNotAllowed, errors.New("only GET method allowed"))
 	}
 
