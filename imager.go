@@ -49,13 +49,13 @@ func (i *Images) Decode(reader io.Reader) error {
 // Encode JPEG image into new bytes buffer
 func (i *Images) Encode() (*bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
-	err := jpeg.Encode(buffer, i.resized, &jpeg.Options{jpeg.DefaultQuality})
+	err := jpeg.Encode(buffer, i.resized, &jpeg.Options{Quality: jpeg.DefaultQuality})
 	return buffer, err
 }
 
 // EncodeToWriter encodes JPEG image to io.Writer
 func (i *Images) EncodeToWriter(writer io.Writer) error {
-	return jpeg.Encode(writer, i.resized, &jpeg.Options{jpeg.DefaultQuality})
+	return jpeg.Encode(writer, i.resized, &jpeg.Options{Quality: jpeg.DefaultQuality})
 }
 
 // Resize image with provided width and height
