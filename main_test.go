@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,13 +27,15 @@ func TestResizeHandler(t *testing.T) {
 	reg := NewRegistry()
 	ttl := 60
 
+	logger := log.New(ioutil.Discard, "", 0)
+
 	t.Run("wrong method", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", URL, nil)
-		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl)}
+		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl), logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
@@ -45,7 +48,7 @@ func TestResizeHandler(t *testing.T) {
 		req := httptest.NewRequest("GET", URL, nil)
 		req.Form = url.Values{"url": {"http://example.com/image.jpg"}, "width": {"-100"}, "height": {"100"}}
 
-		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl)}
+		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl), logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -58,7 +61,7 @@ func TestResizeHandler(t *testing.T) {
 		req := httptest.NewRequest("GET", URL, nil)
 		req.Form = url.Values{"url": {"http://example.com/image.jpg"}, "width": {"100"}, "height": {"-100"}}
 
-		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl)}
+		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl), logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -71,7 +74,7 @@ func TestResizeHandler(t *testing.T) {
 		req := httptest.NewRequest("GET", URL, nil)
 		req.Form = url.Values{"url": {"wrong URL"}, "width": {"100"}, "height": {"100"}}
 
-		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl)}
+		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl), logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -97,7 +100,7 @@ func TestResizeHandler(t *testing.T) {
 		imager := mock.NewMockImager(ctrl)
 		imager.EXPECT().Open(original).Return(fh, nil).Times(1)
 
-		handler := &resizeHandler{cache, ttl, reg, imager, downloader}
+		handler := &resizeHandler{cache, ttl, reg, imager, downloader, logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -133,7 +136,7 @@ func TestResizeHandler(t *testing.T) {
 		buffer.Write(b)
 		imager.EXPECT().Encode().Return(buffer, nil).Times(1)
 
-		handler := &resizeHandler{cache, ttl, reg, imager, downloader}
+		handler := &resizeHandler{cache, ttl, reg, imager, downloader, logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -161,7 +164,7 @@ func TestResizeHandler(t *testing.T) {
 		req.Form = url.Values{"url": {imageLocation}, "width": {strconv.Itoa(width)}, "height": {strconv.Itoa(height)}}
 		req.Header.Set("If-None-Match", "70c8cb786769432edd9f1cd55cf1b135")
 
-		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl)}
+		handler := &resizeHandler{cache, ttl, reg, mock.NewMockImager(ctrl), mock.NewMockDownloader(ctrl), logger}
 		handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusNotModified, rec.Code)
