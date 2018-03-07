@@ -145,12 +145,14 @@ func main() {
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 	go func(signals <-chan os.Signal, reg Registry) {
 		<-signals
+		exitCode := 0
 		err := reg.Cleanup()
 		if err != nil {
 			fmt.Println("remove temp files: ", err.Error())
+			exitCode = 1
 		}
 
-		os.Exit(1)
+		os.Exit(exitCode)
 	}(signals, registry)
 
 	mux := http.NewServeMux()
